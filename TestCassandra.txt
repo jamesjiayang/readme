@@ -1,0 +1,66 @@
+package test.cassandra;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
+
+/**
+ * CREATE KEYSPACE exampkeyspace
+  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
+
+  CREATE TABLE exampkeyspace.users (
+  userid text PRIMARY KEY,
+  username text,
+  password text,
+  emails set<text>,
+  top_scores list<int>,
+  todo map<timestamp, text>
+);
+
+create index user_un on exampkeyspace.users (username);
+
+ */
+public class TestCassandra {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		String serverIP = "127.0.0.1";
+		String keyspace = "system";
+
+		Cluster cluster = Cluster.builder()
+		  .addContactPoints(serverIP)
+		  .build();
+
+		Session session = cluster.connect(keyspace);
+		String cqlStatement = "SELECT * FROM local";
+		
+		for (Row row : session.execute(cqlStatement)) {
+		  System.out.println(row.toString());
+		}
+		
+		// for all three it works the same way (as a note the 'system' keyspace cant 
+		// be modified by users so below im using a keyspace name 'exampkeyspace' and
+		// a table (or columnfamily) called users
+
+		String cqlStatementC = "INSERT INTO exampkeyspace.users (userid, username, password, emails, top_scores, todo) " + 
+		                      "VALUES ('1', 'Serenity', 'fa3dfQefx', {'a@b.com'}, [1], {'2014-10-2 12:00' : 'throw ring into mount doom'})";
+
+		String cqlStatementU = "UPDATE exampkeyspace.users " +
+		                      "SET password = 'zzaEcvAf32hla'," +
+		                      "WHERE username = 'Serenity';";
+
+		String cqlStatementD = "SELECT username FROM exampkeyspace.users WHERE username = 'Serenity'";// + 
+		                     // "WHERE username = 'Serenity';";
+		
+		
+
+		//session.execute(cqlStatementC); // interchangeable, put any of the statements u wish.
+
+		for (Row row : session.execute(cqlStatementD)) {
+			  System.out.println(row.toString());
+		}
+		
+	}
+
+}
