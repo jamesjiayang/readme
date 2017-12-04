@@ -1,0 +1,109 @@
+Lot of people including myself face lot of issues in making this work due to missing some information like, forgetting to convert to Base64, initialization vectors, character set, etc. So I thought of making a fully functional code.
+
+Hope this will be useful to you all: To compile you need additional Apache Commons Codec jar, which is available here: http://commons.apache.org/proper/commons-codec/download_codec.cgi
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.binary.Base64;
+
+public class Encryptor {
+    public static String encrypt(String key, String initVector, String value) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+
+            byte[] encrypted = cipher.doFinal(value.getBytes());
+            System.out.println("encrypted string: "
+                    + Base64.encodeBase64String(encrypted));
+
+            return Base64.encodeBase64String(encrypted);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String decrypt(String key, String initVector, String encrypted) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+            byte[] original = cipher.doFinal(Base64.decodeBase64(encrypted));
+
+            return new String(original);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static void main(String[] args) {
+        String key = "Bar12345Bar12345"; // 128 bit key
+        String initVector = "RandomInitVector"; // 16 bytes IV
+
+        System.out.println(decrypt(key, initVector,
+                encrypt(key, initVector, "Hello World")));
+    }
+}
+
+//Second impl
+package com.mlc.util;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+public class PasswdCipher {
+
+	private static SecretKey _key;
+	private static Cipher _cipher;
+	
+	// DO NOT change this key value!!
+	private final static byte[] _keyValue = "$(slW2)d8DI,l@20".getBytes(Charset.forName("ISO_8859_1"));
+
+	public PasswdCipher() throws NoSuchAlgorithmException, NoSuchPaddingException {
+		_cipher = Cipher.getInstance("AES");
+		_key = new SecretKeySpec( _keyValue, "AES");
+	}
+
+
+	public String encrypt(String plainText)
+			throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+		_cipher.init(Cipher.ENCRYPT_MODE, _key);
+
+		byte[] byteCipherText = _cipher.doFinal(plainText.getBytes(Charset.forName("ISO_8859_1")));
+
+		return Base64.getEncoder().encodeToString(byteCipherText);
+	}
+
+	public String decrypt(String cryptedText)
+			throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
+		_cipher.init(Cipher.DECRYPT_MODE, _key);
+
+		byte[] decoded = Base64.getDecoder().decode(cryptedText);
+		byte[] plainText = _cipher.doFinal(decoded);
+
+		return new String(plainText, "ISO_8859_1");
+	}
+
+}
