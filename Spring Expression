@@ -1,3 +1,5 @@
+https://stackoverflow.com/questions/29797721/oauth2-security-expressions-on-method-level
+
 To enable #oAuth2 security expressions it is only needed to set default expression handler as OAuth2MethodSecurityExpressionHandler instead of DefaultMethodSecurityExpressionHandler. Because OAuth2MethodSecurityExpressionHandler extends it anyway then the whole previous functionality remains the same. I my configuration I use both GlobalMethodSecurityConfiguration and WebSecurityConfigurerAdapter.
 
 @Configuration
