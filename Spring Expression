@@ -1,0 +1,24 @@
+To enable #oAuth2 security expressions it is only needed to set default expression handler as OAuth2MethodSecurityExpressionHandler instead of DefaultMethodSecurityExpressionHandler. Because OAuth2MethodSecurityExpressionHandler extends it anyway then the whole previous functionality remains the same. I my configuration I use both GlobalMethodSecurityConfiguration and WebSecurityConfigurerAdapter.
+
+@Configuration
+@EnableGlobalMethodSecurity
+public class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+
+  @Override
+  protected MethodSecurityExpressionHandler createExpressionHandler() {
+    return new OAuth2MethodSecurityExpressionHandler();
+  }
+}
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+  ...
+}
+
+
+@Configuration
+@Import({ SecurityConfiguration.class, MethodSecurityConfiguration.class })
+public class AppConfiguration {
+  ...
+}
